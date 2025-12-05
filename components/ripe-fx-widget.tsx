@@ -28,6 +28,9 @@ import type React from "react"
 import { useState, useMemo, useEffect } from "react"
 import { Info, Scan, Copy, ChevronDown } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
+import { useTheme } from "next-themes"
+import { Slider } from "@/components/ui/slider-number-flow"
+import Switch from "@/components/ui/dark-mode-toggle"
 
 // ============================================================================
 // MOCK CONFIGURATION - Customize these values for different rates/fees
@@ -75,7 +78,6 @@ interface CalculationResult {
 interface RipeFxWidgetProps {
   initialAmount?: number
   supportedCurrencies?: string[]
-  theme?: "light" | "dark"
   onNetAmountChange?: (amount: number) => void
 }
 
@@ -185,9 +187,11 @@ function useDebounce<T>(value: T, delay = 300): T {
 export const RipeFxWidget: React.FC<RipeFxWidgetProps> = ({
   initialAmount = 100,
   supportedCurrencies = ["PHP", "THB"],
-  theme = "light",
   onNetAmountChange,
 }) => {
+  const { theme } = useTheme()
+  const isDark = theme === "dark"
+  
   // State
   const [withdrawalAddress, setWithdrawalAddress] = useState<string>("")
   const [amount, setAmount] = useState<number>(Math.max(0, initialAmount))
@@ -231,12 +235,54 @@ export const RipeFxWidget: React.FC<RipeFxWidgetProps> = ({
     onNetAmountChange?.(calculation.netFiat)
   }, [calculation.netFiat, onNetAmountChange])
 
-  const handleSliderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const percentage = Number(e.target.value)
+  // Define the preset percentage points
+  const percentagePoints = [0, 20, 50, 80, 100]
+  
+  // Find the closest point to current slider value
+  const findClosestPoint = (value: number): number => {
+    return percentagePoints.reduce((prev, curr) => 
+      Math.abs(curr - value) < Math.abs(prev - value) ? curr : prev
+    )
+  }
+  
+  // Get the currently selected/closest point
+  const selectedPoint = useMemo(() => findClosestPoint(sliderValue), [sliderValue])
+  
+  const handleSliderChange = (values: number[]) => {
+    const percentage = values[0]
     setSliderValue(percentage)
     const calculatedAmount = (MOCK_CONFIG.accountBalance * percentage) / 100
     setAmount(calculatedAmount)
   }
+  
+  // Handle slider value commit (when user releases)
+  const handleSliderValueCommit = (values: number[]) => {
+    const percentage = values[0]
+    // Snap to nearest point if within 5% threshold
+    const closestPoint = findClosestPoint(percentage)
+    if (Math.abs(percentage - closestPoint) <= 5) {
+      setSliderValue(closestPoint)
+      const calculatedAmount = (MOCK_CONFIG.accountBalance * closestPoint) / 100
+      setAmount(calculatedAmount)
+    }
+  }
+  
+  const handleSliderPointClick = (e: React.MouseEvent, percentage: number) => {
+    e.preventDefault()
+    e.stopPropagation()
+    // Immediately update to exact point value
+    setSliderValue(percentage)
+    const calculatedAmount = (MOCK_CONFIG.accountBalance * percentage) / 100
+    setAmount(calculatedAmount)
+  }
+  
+  // Calculate initial slider value from initial amount
+  useEffect(() => {
+    if (initialAmount > 0) {
+      const initialPercentage = (initialAmount / MOCK_CONFIG.accountBalance) * 100
+      setSliderValue(Math.min(100, Math.max(0, initialPercentage)))
+    }
+  }, [initialAmount])
 
   const handleClipboard = async () => {
     if (withdrawalAddress) {
@@ -275,12 +321,12 @@ export const RipeFxWidget: React.FC<RipeFxWidgetProps> = ({
     setWithdrawalAddress(e.target.value)
   }
 
-  const bgClass = theme === "dark" ? "bg-gray-900 text-white" : "bg-white text-gray-900"
-  const borderClass = theme === "dark" ? "border-gray-700" : "border-gray-200"
-  const inputBgClass = theme === "dark" ? "bg-gray-800 border-gray-700" : "bg-gray-50 border-gray-300"
-  const labelClass = theme === "dark" ? "text-gray-300" : "text-gray-600"
-  const mutedClass = theme === "dark" ? "text-gray-400" : "text-gray-500"
-  const breakdownBgClass = theme === "dark" ? "bg-gray-800" : "bg-gray-50"
+  const bgClass = isDark ? "bg-gray-900 text-white" : "bg-white text-gray-900"
+  const borderClass = isDark ? "border-gray-700" : "border-gray-200"
+  const inputBgClass = isDark ? "bg-gray-800 border-gray-700" : "bg-gray-50 border-gray-300"
+  const labelClass = isDark ? "text-gray-300" : "text-gray-600"
+  const mutedClass = isDark ? "text-gray-400" : "text-gray-500"
+  const breakdownBgClass = isDark ? "bg-gray-800" : "bg-gray-50"
 
   const currencySymbols: Record<string, string> = {
     PHP: "₱",
@@ -313,7 +359,7 @@ export const RipeFxWidget: React.FC<RipeFxWidgetProps> = ({
 
   return (
     <motion.div
-      className={`w-full max-w-md mx-auto p-6 rounded-lg border ${borderClass} ${bgClass} transition-colors`}
+      className={`w-full max-w-md mx-auto p-6 rounded-lg border ${borderClass} ${bgClass} transition-colors duration-500 ease-in-out`}
       role="region"
       aria-label="FX and fee transparency widget"
       variants={containerVariants}
@@ -321,8 +367,11 @@ export const RipeFxWidget: React.FC<RipeFxWidgetProps> = ({
       animate="visible"
     >
       {/* Ripe logo at the top */}
-      <motion.div className="mb-6 flex justify-center" variants={itemVariants}>
+      <motion.div className="mb-6 flex justify-center items-center gap-4" variants={itemVariants}>
         <img src="/images/zxcasd.png" alt="Ripe Logo" className="h-12" />
+        <div className="ml-auto">
+          <Switch />
+        </div>
       </motion.div>
 
       {/* Header */}
@@ -341,7 +390,7 @@ export const RipeFxWidget: React.FC<RipeFxWidgetProps> = ({
             style={{
               backgroundColor: direction === dir.toLowerCase() ? "#FFC828" : "transparent",
               color: direction === dir.toLowerCase() ? "#000" : "inherit",
-              border: direction === dir.toLowerCase() ? "none" : `1px solid ${theme === "dark" ? "#444" : "#ddd"}`,
+              border: direction === dir.toLowerCase() ? "none" : `1px solid ${isDark ? "#444" : "#ddd"}`,
             }}
             aria-pressed={direction === dir.toLowerCase()}
           >
@@ -384,8 +433,8 @@ export const RipeFxWidget: React.FC<RipeFxWidgetProps> = ({
             onClick={handleScan}
             className={`p-3 rounded-lg border transition-all`}
             style={{
-              borderColor: theme === "dark" ? "#444" : "#ddd",
-              backgroundColor: theme === "dark" ? "#666" : "#f0f0f0",
+              borderColor: isDark ? "#444" : "#ddd",
+              backgroundColor: isDark ? "#666" : "#f0f0f0",
             }}
             whileHover={{ scale: 1.05, backgroundColor: "#FFC828" }}
             whileTap={{ scale: 0.95 }}
@@ -398,8 +447,8 @@ export const RipeFxWidget: React.FC<RipeFxWidgetProps> = ({
             onClick={handleClipboard}
             className={`p-3 rounded-lg border transition-all`}
             style={{
-              borderColor: theme === "dark" ? "#444" : "#ddd",
-              backgroundColor: theme === "dark" ? "#666" : "#f0f0f0",
+              borderColor: isDark ? "#444" : "#ddd",
+              backgroundColor: isDark ? "#666" : "#f0f0f0",
             }}
             whileHover={{ scale: 1.05, backgroundColor: "#FFC828" }}
             whileTap={{ scale: 0.95 }}
@@ -490,7 +539,7 @@ export const RipeFxWidget: React.FC<RipeFxWidgetProps> = ({
                   style={{
                     backgroundColor: selectedStablecoin === coin.symbol ? "#FFC828" : "transparent",
                     color: selectedStablecoin === coin.symbol ? "#000" : "inherit",
-                    borderColor: selectedStablecoin === coin.symbol ? "#FFC828" : theme === "dark" ? "#444" : "#ddd",
+                    borderColor: selectedStablecoin === coin.symbol ? "#FFC828" : isDark ? "#444" : "#ddd",
                   }}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
@@ -514,42 +563,69 @@ export const RipeFxWidget: React.FC<RipeFxWidgetProps> = ({
 
       <motion.div className="mb-6" variants={itemVariants}>
         <label className={`block text-sm font-medium mb-3 ${labelClass}`}>
-          Select percentage: {sliderValue.toFixed(0)}%
+          Select percentage
         </label>
-        <div className="flex items-center gap-3">
-          <input
-            type="range"
-            min="0"
-            max="100"
-            step="1"
-            value={sliderValue}
-            onChange={handleSliderChange}
-            className="flex-1 h-2 rounded appearance-none cursor-pointer"
-            style={{
-              background: `linear-gradient(to right, #FFC828 0%, #FFC828 ${sliderValue}%, ${theme === "dark" ? "#444" : "#e5e7eb"} ${sliderValue}%, ${theme === "dark" ? "#444" : "#e5e7eb"} 100%)`,
-            }}
+        <div className="relative pt-12 pb-6">
+          <Slider
+            value={[sliderValue]}
+            onValueChange={handleSliderChange}
+            onValueCommit={handleSliderValueCommit}
+            min={0}
+            max={100}
+            step={1}
             aria-label="Percentage slider"
           />
-        </div>
-        <div className="flex justify-between mt-2 text-xs text-gray-500">
-          {[0, 20, 50, 80, 100].map((point) => (
-            <button
-              key={point}
-              onClick={() => {
-                setSliderValue(point)
-                setAmount((MOCK_CONFIG.accountBalance * point) / 100)
-              }}
-              className="w-6 h-6 rounded-full border transition-all hover:bg-yellow-100 dark:hover:bg-yellow-900"
-              style={{
-                backgroundColor: sliderValue === point ? "#FFC828" : "transparent",
-                color: sliderValue === point ? "#000" : "inherit",
-                borderColor: sliderValue === point ? "#FFC828" : theme === "dark" ? "#444" : "#ddd",
-              }}
-              aria-label={`Set to ${point}%`}
-            >
-              <span className="text-xs font-semibold">{point}%</span>
-            </button>
-          ))}
+          {/* Clickable radio button points on slider - aligned with track center */}
+          {/* Track is h-[3px] centered in h-5 (20px) container, so center is at 10px from slider top */}
+          {/* Slider starts at pt-12 (48px), so track center is at 48px + 10px = 58px */}
+          {/* Points container h-5 centers content, so position it so center aligns with track center */}
+          <div 
+            className="absolute left-0 right-0 h-5 flex items-center pointer-events-none" 
+            style={{ top: '48px', zIndex: 20 }}
+          >
+            {percentagePoints.map((point) => {
+              const isSelected = selectedPoint === point
+              const isExactMatch = sliderValue === point
+              return (
+                <button
+                  key={point}
+                  type="button"
+                  role="radio"
+                  aria-checked={isSelected}
+                  aria-label={`Set to ${point}%`}
+                  onClick={(e) => handleSliderPointClick(e, point)}
+                  onMouseDown={(e) => {
+                    // Prevent slider from being dragged when clicking on point
+                    e.stopPropagation()
+                  }}
+                  className="absolute rounded-full border-2 transition-all pointer-events-auto cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#FFC828]"
+                  style={{
+                    left: `${point}%`,
+                    width: '16px',
+                    height: '16px',
+                    transform: "translateX(-50%) translateY(10px)",
+                    backgroundColor: isSelected ? "#FFC828" : isDark ? "#444" : "#fff",
+                    borderColor: isSelected ? "#FFC828" : isDark ? "#666" : "#ddd",
+                    borderWidth: isSelected ? '3px' : '2px',
+                    zIndex: 20,
+                    boxShadow: isSelected ? '0 0 0 2px rgba(255, 200, 40, 0.2)' : 'none',
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isSelected) {
+                      e.currentTarget.style.transform = "translateX(-50%) translateY(10px) scale(1.3)"
+                      e.currentTarget.style.borderWidth = "3px"
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isSelected) {
+                      e.currentTarget.style.transform = "translateX(-50%) translateY(10px) scale(1)"
+                      e.currentTarget.style.borderWidth = "2px"
+                    }
+                  }}
+                />
+              )
+            })}
+          </div>
         </div>
       </motion.div>
 
