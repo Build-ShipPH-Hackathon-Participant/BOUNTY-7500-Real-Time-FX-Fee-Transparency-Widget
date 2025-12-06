@@ -9,7 +9,7 @@ export { CURRENCY_SYMBOLS } from './types'
 export { FX_CONFIG, PERCENTAGE_POINTS, CONTAINER_VARIANTS, ITEM_VARIANTS } from './constants'
 
 // Hooks
-export { useDebounce, useFxCalculation, useThemeClasses } from './hooks'
+export { useDebounce, useFxCalculation, useThemeClasses, useExchangeRate } from './hooks'
 
 // Utils
 export * from './utils'
@@ -25,5 +25,7 @@ export {
   ResultDisplay,
   FeeBreakdown,
   EmptyState,
+  ReceivePanel,
+  ExchangeRateDisplay,
 } from './components'
 

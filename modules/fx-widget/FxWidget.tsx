@@ -22,6 +22,8 @@ import {
   ResultDisplay,
   FeeBreakdown,
   EmptyState,
+  ReceivePanel,
+  ExchangeRateDisplay,
 } from './components'
 
 export function FxWidget({
@@ -137,79 +139,104 @@ export function FxWidget({
         isDark={isDark}
       />
 
-      <WithdrawalAddressInput
-        value={withdrawalAddress}
-        onChange={setWithdrawalAddress}
-        isFocused={isFocused === 'address'}
-        onFocus={() => setIsFocused('address')}
-        onBlur={() => setIsFocused(null)}
-        isDark={isDark}
-        labelClass={labelClass}
-        inputBgClass={inputBgClass}
-      />
+      {direction === 'send' ? (
+        <motion.div
+          key="send-panel"
+          initial="visible"
+          animate="visible"
+          variants={CONTAINER_VARIANTS}
+        >
+          <WithdrawalAddressInput
+            value={withdrawalAddress}
+            onChange={setWithdrawalAddress}
+            isFocused={isFocused === 'address'}
+            onFocus={() => setIsFocused('address')}
+            onBlur={() => setIsFocused(null)}
+            isDark={isDark}
+            labelClass={labelClass}
+            inputBgClass={inputBgClass}
+          />
 
-      <AmountInput
-        amountInput={amountInput}
-        onAmountChange={handleAmountInputChange}
-        onAmountBlur={handleAmountBlur}
-        isFocused={isFocused === 'amount'}
-        onFocus={() => setIsFocused('amount')}
-        selectedStablecoin={selectedStablecoin}
-        onStablecoinChange={setSelectedStablecoin}
-        onMaxClick={handleMaxClick}
-        isDark={isDark}
-        labelClass={labelClass}
-        inputBgClass={inputBgClass}
-        mutedClass={mutedClass}
-      />
+          <AmountInput
+            amountInput={amountInput}
+            onAmountChange={handleAmountInputChange}
+            onAmountBlur={handleAmountBlur}
+            isFocused={isFocused === 'amount'}
+            onFocus={() => setIsFocused('amount')}
+            selectedStablecoin={selectedStablecoin}
+            onStablecoinChange={setSelectedStablecoin}
+            onMaxClick={handleMaxClick}
+            isDark={isDark}
+            labelClass={labelClass}
+            inputBgClass={inputBgClass}
+            mutedClass={mutedClass}
+          />
 
-      <PercentageSlider
-        sliderValue={sliderValue}
-        onSliderChange={handleSliderChange}
-        onSliderCommit={handleSliderCommit}
-        onPointClick={handleSliderPointClick}
-        isDark={isDark}
-        labelClass={labelClass}
-      />
+          <PercentageSlider
+            sliderValue={sliderValue}
+            onSliderChange={handleSliderChange}
+            onSliderCommit={handleSliderCommit}
+            onPointClick={handleSliderPointClick}
+            isDark={isDark}
+            labelClass={labelClass}
+          />
 
-      <CurrencySelector
-        currency={validCurrency}
-        supportedCurrencies={supportedCurrencies}
-        onCurrencyChange={setCurrency}
-        labelClass={labelClass}
-        isDark={isDark}
-      />
+          <CurrencySelector
+            currency={validCurrency}
+            supportedCurrencies={supportedCurrencies}
+            onCurrencyChange={setCurrency}
+            labelClass={labelClass}
+            inputBgClass={inputBgClass}
+          />
 
-      <ResultDisplay
-        amount={amount}
-        netFiat={calculation.netFiat}
-        symbol={symbol}
-        borderClass={borderClass}
-        breakdownBgClass={breakdownBgClass}
-        mutedClass={mutedClass}
-      />
+          <ResultDisplay
+            amount={amount}
+            netFiat={calculation.netFiat}
+            symbol={symbol}
+            borderClass={borderClass}
+            breakdownBgClass={breakdownBgClass}
+            mutedClass={mutedClass}
+          />
 
-      <FeeBreakdown
-        amount={amount}
-        calculation={calculation}
-        symbol={symbol}
-        borderClass={borderClass}
-        breakdownBgClass={breakdownBgClass}
-        labelClass={labelClass}
-        mutedClass={mutedClass}
-      />
+          {/* Real-time exchange rate */}
+          {amount > 0 && (
+            <ExchangeRateDisplay
+              stablecoin={selectedStablecoin.symbol}
+              fiatCurrency={validCurrency}
+              mutedClass={mutedClass}
+            />
+          )}
 
-      <EmptyState
-        amount={amount}
-        borderClass={borderClass}
-        breakdownBgClass={breakdownBgClass}
-        mutedClass={mutedClass}
-      />
+          <FeeBreakdown
+            amount={amount}
+            calculation={calculation}
+            symbol={symbol}
+            borderClass={borderClass}
+            breakdownBgClass={breakdownBgClass}
+            labelClass={labelClass}
+            mutedClass={mutedClass}
+          />
 
-      {/* Footer Disclaimer */}
-      <motion.p className={`text-xs ${mutedClass} mt-4 text-center leading-relaxed`} variants={ITEM_VARIANTS}>
-        Rates and fees are for demonstration. Actual rates may vary.
-      </motion.p>
+          <EmptyState
+            amount={amount}
+            borderClass={borderClass}
+            breakdownBgClass={breakdownBgClass}
+            mutedClass={mutedClass}
+          />
+
+          {/* Footer Disclaimer */}
+          <motion.p className={`text-xs ${mutedClass} mt-4 text-center leading-relaxed`} variants={ITEM_VARIANTS}>
+            Rates and fees are for demonstration. Actual rates may vary.
+          </motion.p>
+        </motion.div>
+      ) : (
+        <ReceivePanel
+          borderClass={borderClass}
+          breakdownBgClass={breakdownBgClass}
+          labelClass={labelClass}
+          mutedClass={mutedClass}
+        />
+      )}
     </motion.div>
   )
 }

@@ -1,11 +1,10 @@
 'use client'
 
 import { motion } from 'framer-motion'
+import { cn } from '@/lib/utils'
 import { ITEM_VARIANTS } from '../constants'
 import {
-  CurrencySelector as CurrencySelectorPopover,
-  CurrencyTrigger,
-  CurrencyContent,
+  CurrencySelector as CurrencyDropdown,
   createCurrenciesFromCodes,
   type FiatCurrency,
 } from '@/components/ui/currency-selector'
@@ -15,7 +14,7 @@ interface CurrencySelectorProps {
   supportedCurrencies: string[]
   onCurrencyChange: (currency: string) => void
   labelClass: string
-  isDark: boolean
+  inputBgClass?: string
 }
 
 export function CurrencySelector({
@@ -23,7 +22,6 @@ export function CurrencySelector({
   supportedCurrencies,
   onCurrencyChange,
   labelClass,
-  isDark,
 }: CurrencySelectorProps) {
   // Convert string codes to FiatCurrency objects
   const currencies = createCurrenciesFromCodes(supportedCurrencies)
@@ -34,17 +32,14 @@ export function CurrencySelector({
 
   return (
     <motion.div className="mb-6" variants={ITEM_VARIANTS}>
-      <label className={`block text-sm font-medium mb-2 ${labelClass}`}>
+      <label className={cn('block text-sm font-medium mb-2 transition-colors duration-300', labelClass)}>
         Receive in
       </label>
-      <CurrencySelectorPopover
+      <CurrencyDropdown
         currencies={currencies}
         selectedCurrencyCode={currency}
         onCurrencyChange={handleCurrencyChange}
-      >
-        <CurrencyTrigger isDark={isDark} />
-        <CurrencyContent isDark={isDark} title="Select Currency" />
-      </CurrencySelectorPopover>
+      />
     </motion.div>
   )
 }

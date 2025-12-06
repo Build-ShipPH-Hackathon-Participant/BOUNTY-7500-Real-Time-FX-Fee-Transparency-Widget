@@ -9,6 +9,7 @@
     "start": "next start"
   },
   "dependencies": {
+    "@ark-ui/react": "^5.29.1",
     "@emotion/is-prop-valid": "latest",
     "@hookform/resolvers": "^3.10.0",
     "@number-flow/react": "^0.5.10",

@@ -38,7 +38,9 @@ export interface ThemeClasses {
 export const CURRENCY_SYMBOLS: Record<string, string> = {
   PHP: "₱",
   THB: "฿",
-  SGD: "$",
+  SGD: "S$",
   USD: "$",
+  IDR: "Rp",
+  MYR: "RM",
 }
 

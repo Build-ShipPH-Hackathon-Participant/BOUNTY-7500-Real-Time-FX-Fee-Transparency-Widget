@@ -7,4 +7,6 @@ export { CurrencySelector } from './CurrencySelector'
 export { ResultDisplay } from './ResultDisplay'
 export { FeeBreakdown } from './FeeBreakdown'
 export { EmptyState } from './EmptyState'
+export { ReceivePanel } from './ReceivePanel'
+export { ExchangeRateDisplay } from './ExchangeRateDisplay'
 

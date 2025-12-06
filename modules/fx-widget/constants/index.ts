@@ -11,11 +11,15 @@ export const FX_CONFIG: FxConfig = {
     PHP: 59.0,
     THB: 34.5,
     SGD: 1.35,
+    IDR: 16250.0,
+    MYR: 4.45,
   },
   customerRates: {
     PHP: 58.5,
     THB: 34.0,
     SGD: 1.33,
+    IDR: 16100.0,
+    MYR: 4.40,
   },
   // Ripe transaction fee as percentage of stablecoin amount
   ripeFeePercent: 0.5,

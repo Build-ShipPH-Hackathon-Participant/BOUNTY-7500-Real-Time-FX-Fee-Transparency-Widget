@@ -9,7 +9,7 @@ export default function Home() {
         <div className="flex justify-center">
           <FxWidget
             initialAmount={100}
-            supportedCurrencies={["PHP", "THB", "SGD"]}
+            supportedCurrencies={["PHP", "THB", "IDR", "MYR"]}
             onNetAmountChange={(amount) => {
               console.log("Net amount:", amount)
             }}
