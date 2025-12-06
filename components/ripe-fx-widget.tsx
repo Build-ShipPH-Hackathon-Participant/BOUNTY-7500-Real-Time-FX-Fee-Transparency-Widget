@@ -353,7 +353,7 @@ export const RipeFxWidget: React.FC<RipeFxWidgetProps> = ({
     visible: {
       opacity: 1,
       y: 0,
-      transition: { duration: 0.4, ease: "easeOut" },
+      transition: { duration: 0.4, ease: "easeOut" as const },
     },
   }
 
@@ -566,6 +566,7 @@ export const RipeFxWidget: React.FC<RipeFxWidgetProps> = ({
           Select percentage
         </label>
         <div className="relative pt-12 pb-6">
+          {/* Layer 3: Slider track/line (bottom layer) */}
           <Slider
             value={[sliderValue]}
             onValueChange={handleSliderChange}
@@ -575,17 +576,20 @@ export const RipeFxWidget: React.FC<RipeFxWidgetProps> = ({
             step={1}
             aria-label="Percentage slider"
           />
-          {/* Clickable radio button points on slider - aligned with track center */}
-          {/* Track is h-[3px] centered in h-5 (20px) container, so center is at 10px from slider top */}
-          {/* Slider starts at pt-12 (48px), so track center is at 48px + 10px = 58px */}
-          {/* Points container h-5 centers content, so position it so center aligns with track center */}
+          {/* Percentage buttons - positioned to match slider track exactly */}
+          {/* Slider thumb is 20px (h-5 w-5), positioned with center at percentage */}
+          {/* Adding px-[10px] to account for thumb center offset at edges */}
+          {/* Vertical: pt-12 (48px) + h-5/2 (10px) = 58px track center; 16px buttons centered at 58px means top at 50px */}
           <div 
-            className="absolute left-0 right-0 h-5 flex items-center pointer-events-none" 
-            style={{ top: '48px', zIndex: 20 }}
+            className="absolute left-[10px] right-[10px] pointer-events-none" 
+            style={{ 
+              top: '50px', 
+              height: '16px',
+              zIndex: 30 
+            }}
           >
             {percentagePoints.map((point) => {
               const isSelected = selectedPoint === point
-              const isExactMatch = sliderValue === point
               return (
                 <button
                   key={point}
@@ -598,27 +602,32 @@ export const RipeFxWidget: React.FC<RipeFxWidgetProps> = ({
                     // Prevent slider from being dragged when clicking on point
                     e.stopPropagation()
                   }}
+                  onTouchStart={(e) => {
+                    // Prevent slider drag on touch devices
+                    e.stopPropagation()
+                  }}
                   className="absolute rounded-full border-2 transition-all pointer-events-auto cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#FFC828]"
                   style={{
                     left: `${point}%`,
                     width: '16px',
                     height: '16px',
-                    transform: "translateX(-50%) translateY(10px)",
+                    top: '0px',
+                    transform: "translateX(-50%)",
                     backgroundColor: isSelected ? "#FFC828" : isDark ? "#444" : "#fff",
                     borderColor: isSelected ? "#FFC828" : isDark ? "#666" : "#ddd",
                     borderWidth: isSelected ? '3px' : '2px',
-                    zIndex: 20,
+                    zIndex: 30,
                     boxShadow: isSelected ? '0 0 0 2px rgba(255, 200, 40, 0.2)' : 'none',
                   }}
                   onMouseEnter={(e) => {
                     if (!isSelected) {
-                      e.currentTarget.style.transform = "translateX(-50%) translateY(10px) scale(1.3)"
+                      e.currentTarget.style.transform = "translateX(-50%) scale(1.3)"
                       e.currentTarget.style.borderWidth = "3px"
                     }
                   }}
                   onMouseLeave={(e) => {
                     if (!isSelected) {
-                      e.currentTarget.style.transform = "translateX(-50%) translateY(10px) scale(1)"
+                      e.currentTarget.style.transform = "translateX(-50%) scale(1)"
                       e.currentTarget.style.borderWidth = "2px"
                     }
                   }}

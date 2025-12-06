@@ -8,15 +8,15 @@ export default function Slider({ value, className, ...props }: RadixSlider.Slide
 			{...props}
 			value={value}
 			className={clsx(className, 'relative flex h-5 w-full touch-none select-none items-center')}
-			style={{ zIndex: 1 }}
+			style={{ zIndex: 10 }}
 		>
-			<RadixSlider.Track className="relative h-[3px] grow rounded-full bg-zinc-100 dark:bg-zinc-800" style={{ zIndex: 1 }}>
+			<RadixSlider.Track className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-[3px] rounded-full bg-zinc-100 dark:bg-zinc-800" style={{ zIndex: 10 }}>
 				<RadixSlider.Range className="absolute h-full rounded-full bg-black dark:bg-white" />
 			</RadixSlider.Track>
 			<RadixSlider.Thumb
-				className="relative block h-5 w-5 rounded-[1rem] bg-white shadow-md ring ring-black/10"
+				className="relative block h-5 w-5 rounded-2xl bg-white shadow-md ring ring-black/10"
 				aria-label="Volume"
-				style={{ zIndex: 15 }}
+				style={{ zIndex: 20 }}
 			>
 				{value?.[0] != null && (
 					<div className="absolute bottom-8 left-1/2 -translate-x-1/2 text-lg font-semibold whitespace-nowrap flex items-baseline">
@@ -24,7 +24,6 @@ export default function Slider({ value, className, ...props }: RadixSlider.Slide
 							willChange
 							value={value[0]}
 							isolate
-							continuous
 							opacityTiming={{
 								duration: 250,
 								easing: 'ease-out'
