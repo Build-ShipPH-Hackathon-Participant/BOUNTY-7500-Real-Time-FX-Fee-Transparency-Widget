@@ -19,9 +19,12 @@ export function useNetworkDetails(
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  const networkId = network?.id
+
   const loadNetworkDetails = useCallback(async () => {
-    if (!network) {
+    if (!networkId) {
       setDetails(null)
+      setLoading(false)
       return
     }
 
@@ -30,7 +33,7 @@ export function useNetworkDetails(
 
     try {
       // Fetch network details from service (which can use API or defaults)
-      const networkDetails = await fetchNetworkDetails(network.id)
+      const networkDetails = await fetchNetworkDetails(networkId)
       setDetails(networkDetails)
     } catch (err) {
       console.error('Network details fetch error:', err)
@@ -38,7 +41,7 @@ export function useNetworkDetails(
     } finally {
       setLoading(false)
     }
-  }, [network])
+  }, [networkId])
 
   useEffect(() => {
     loadNetworkDetails()

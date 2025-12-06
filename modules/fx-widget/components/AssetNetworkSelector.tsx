@@ -346,7 +346,7 @@ export function AssetNetworkSelector({
   )
   
   // Fetch network details when a network is selected
-  const { details: networkDetails, loading: detailsLoading } = useNetworkDetails(selectedNetwork)
+  const { details: networkDetails, loading: detailsLoading } = useNetworkDetails(selectedNetwork || null)
 
   // Reset step when modal closes
   React.useEffect(() => {
