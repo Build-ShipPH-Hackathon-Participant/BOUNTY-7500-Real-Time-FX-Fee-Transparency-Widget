@@ -27,12 +27,12 @@ import {
 } from './components'
 
 export function FxWidget({
-  initialAmount = 100,
+  initialAmount = 0,
   supportedCurrencies = ['PHP', 'THB'],
   onNetAmountChange,
 }: FxWidgetProps) {
-  // Theme
-  const { isDark, bgClass, borderClass, inputBgClass, labelClass, mutedClass, breakdownBgClass } = useThemeClasses()
+  // Theme - now returns Tailwind dark: classes
+  const { bgClass, borderClass, inputBgClass, labelClass, mutedClass, breakdownBgClass } = useThemeClasses()
 
   // State
   const [withdrawalAddress, setWithdrawalAddress] = useState('')
@@ -136,7 +136,6 @@ export function FxWidget({
       <DirectionToggle
         direction={direction}
         onDirectionChange={setDirection}
-        isDark={isDark}
       />
 
       {direction === 'send' ? (
@@ -152,7 +151,6 @@ export function FxWidget({
             isFocused={isFocused === 'address'}
             onFocus={() => setIsFocused('address')}
             onBlur={() => setIsFocused(null)}
-            isDark={isDark}
             labelClass={labelClass}
             inputBgClass={inputBgClass}
           />
@@ -166,7 +164,6 @@ export function FxWidget({
             selectedStablecoin={selectedStablecoin}
             onStablecoinChange={setSelectedStablecoin}
             onMaxClick={handleMaxClick}
-            isDark={isDark}
             labelClass={labelClass}
             inputBgClass={inputBgClass}
             mutedClass={mutedClass}
@@ -177,7 +174,6 @@ export function FxWidget({
             onSliderChange={handleSliderChange}
             onSliderCommit={handleSliderCommit}
             onPointClick={handleSliderPointClick}
-            isDark={isDark}
             labelClass={labelClass}
           />
 
@@ -225,7 +221,7 @@ export function FxWidget({
           />
 
           {/* Footer Disclaimer */}
-          <motion.p className={`text-xs ${mutedClass} mt-4 text-center leading-relaxed`} variants={ITEM_VARIANTS}>
+          <motion.p className={`text-xs ${mutedClass} mt-4 text-center leading-relaxed transition-colors duration-300`} variants={ITEM_VARIANTS}>
             Rates and fees are for demonstration. Actual rates may vary.
           </motion.p>
         </motion.div>
@@ -242,4 +238,3 @@ export function FxWidget({
 }
 
 export default FxWidget
-

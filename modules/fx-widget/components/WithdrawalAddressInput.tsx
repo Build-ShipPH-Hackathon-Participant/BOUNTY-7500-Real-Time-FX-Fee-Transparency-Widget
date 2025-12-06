@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion'
 import { Scan, Copy } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import { ITEM_VARIANTS } from '../constants'
 
 interface WithdrawalAddressInputProps {
@@ -10,7 +11,6 @@ interface WithdrawalAddressInputProps {
   isFocused: boolean
   onFocus: () => void
   onBlur: () => void
-  isDark: boolean
   labelClass: string
   inputBgClass: string
 }
@@ -21,7 +21,6 @@ export function WithdrawalAddressInput({
   isFocused,
   onFocus,
   onBlur,
-  isDark,
   labelClass,
   inputBgClass,
 }: WithdrawalAddressInputProps) {
@@ -40,7 +39,7 @@ export function WithdrawalAddressInput({
 
   return (
     <motion.div className="mb-4" variants={ITEM_VARIANTS}>
-      <label htmlFor="withdrawal-address" className={`block text-sm font-medium mb-2 ${labelClass}`}>
+      <label htmlFor="withdrawal-address" className={cn('block text-sm font-medium mb-2 transition-colors duration-300', labelClass)}>
         Withdrawal Address
       </label>
       <motion.div
@@ -58,18 +57,14 @@ export function WithdrawalAddressInput({
           onFocus={onFocus}
           onBlur={onBlur}
           placeholder="Enter withdrawal address"
-          className={`flex-1 px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-0 transition-colors ${inputBgClass}`}
+          className={cn('flex-1 px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-0 transition-colors duration-300', inputBgClass)}
           style={{ '--tw-ring-color': '#FFC828' } as React.CSSProperties}
           aria-label="Withdrawal address"
         />
         <motion.button
           onClick={handleScan}
-          className="p-3 rounded-lg border transition-all"
-          style={{
-            borderColor: isDark ? '#444' : '#ddd',
-            backgroundColor: isDark ? '#666' : '#f0f0f0',
-          }}
-          whileHover={{ scale: 1.05, backgroundColor: '#FFC828' }}
+          className="p-3 rounded-lg border transition-all duration-300 border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-700 hover:bg-[#FFC828] hover:border-[#FFC828]"
+          whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           aria-label="Scan QR code"
           title="Scan QR code"
@@ -78,12 +73,8 @@ export function WithdrawalAddressInput({
         </motion.button>
         <motion.button
           onClick={handleClipboard}
-          className="p-3 rounded-lg border transition-all"
-          style={{
-            borderColor: isDark ? '#444' : '#ddd',
-            backgroundColor: isDark ? '#666' : '#f0f0f0',
-          }}
-          whileHover={{ scale: 1.05, backgroundColor: '#FFC828' }}
+          className="p-3 rounded-lg border transition-all duration-300 border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-700 hover:bg-[#FFC828] hover:border-[#FFC828]"
+          whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           aria-label="Copy address to clipboard"
           title="Copy address to clipboard"
@@ -94,4 +85,3 @@ export function WithdrawalAddressInput({
     </motion.div>
   )
 }
-

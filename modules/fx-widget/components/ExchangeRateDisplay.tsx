@@ -48,7 +48,8 @@ export function ExchangeRateDisplay({
           {rate?.toLocaleString('en-US', { 
             minimumFractionDigits: 2, 
             maximumFractionDigits: 2 
-          })} {fiatCurrency.toUpperCase()}
+          })}{' '}
+          {fiatCurrency.toUpperCase()}
         </motion.span>
       )}
 

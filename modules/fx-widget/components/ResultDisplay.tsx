@@ -39,7 +39,7 @@ export function ResultDisplay({
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.2 }}
           >
-            {symbol}
+            <span className="text-lg align-baseline relative -top-1 opacity-70 mr-0.5">{symbol}</span>
             {formatNumber(netFiat)}
           </motion.p>
         </motion.div>

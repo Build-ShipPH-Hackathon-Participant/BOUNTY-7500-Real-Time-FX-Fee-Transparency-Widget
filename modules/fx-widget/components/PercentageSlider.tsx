@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react'
 import { motion } from 'framer-motion'
+import { cn } from '@/lib/utils'
 import { Slider } from '@/components/ui/slider-number-flow'
 import { ITEM_VARIANTS, PERCENTAGE_POINTS } from '../constants'
 import { findClosestPoint } from '../utils/calculations'
@@ -11,7 +12,6 @@ interface PercentageSliderProps {
   onSliderChange: (values: number[]) => void
   onSliderCommit: (values: number[]) => void
   onPointClick: (e: React.MouseEvent, percentage: number) => void
-  isDark: boolean
   labelClass: string
 }
 
@@ -20,7 +20,6 @@ export function PercentageSlider({
   onSliderChange,
   onSliderCommit,
   onPointClick,
-  isDark,
   labelClass,
 }: PercentageSliderProps) {
   const selectedPoint = useMemo(
@@ -30,7 +29,7 @@ export function PercentageSlider({
 
   return (
     <motion.div className="mb-6" variants={ITEM_VARIANTS}>
-      <label className={`block text-sm font-medium mb-3 ${labelClass}`}>
+      <label className={cn('block text-sm font-medium mb-3 transition-colors duration-300', labelClass)}>
         Select percentage
       </label>
       <div className="relative pt-12 pb-6">
@@ -64,30 +63,19 @@ export function PercentageSlider({
                 onClick={(e) => onPointClick(e, point)}
                 onMouseDown={(e) => e.stopPropagation()}
                 onTouchStart={(e) => e.stopPropagation()}
-                className="absolute rounded-full border-2 transition-all pointer-events-auto cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#FFC828]"
+                className={cn(
+                  'absolute rounded-full transition-all duration-300 pointer-events-auto cursor-pointer',
+                  'focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#FFC828]',
+                  'w-4 h-4 -translate-x-1/2',
+                  'hover:scale-125 hover:border-[3px]',
+                  isSelected
+                    ? 'bg-[#FFC828] border-[3px] border-[#FFC828] shadow-[0_0_0_2px_rgba(255,200,40,0.2)]'
+                    : 'bg-white dark:bg-gray-700 border-2 border-gray-300 dark:border-gray-500'
+                )}
                 style={{
                   left: `${point}%`,
-                  width: '16px',
-                  height: '16px',
                   top: '0px',
-                  transform: 'translateX(-50%)',
-                  backgroundColor: isSelected ? '#FFC828' : isDark ? '#444' : '#fff',
-                  borderColor: isSelected ? '#FFC828' : isDark ? '#666' : '#ddd',
-                  borderWidth: isSelected ? '3px' : '2px',
                   zIndex: 30,
-                  boxShadow: isSelected ? '0 0 0 2px rgba(255, 200, 40, 0.2)' : 'none',
-                }}
-                onMouseEnter={(e) => {
-                  if (!isSelected) {
-                    e.currentTarget.style.transform = 'translateX(-50%) scale(1.3)'
-                    e.currentTarget.style.borderWidth = '3px'
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!isSelected) {
-                    e.currentTarget.style.transform = 'translateX(-50%) scale(1)'
-                    e.currentTarget.style.borderWidth = '2px'
-                  }
                 }}
               />
             )
@@ -97,4 +85,3 @@ export function PercentageSlider({
     </motion.div>
   )
 }
-

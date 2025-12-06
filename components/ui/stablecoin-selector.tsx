@@ -130,11 +130,9 @@ function StablecoinProvider({
 }
 
 // Trigger component
-interface StablecoinTriggerProps extends React.ComponentProps<'button'> {
-  isDark?: boolean;
-}
+interface StablecoinTriggerProps extends React.ComponentProps<'button'> {}
 
-function StablecoinTrigger({ className, isDark = false, ...props }: StablecoinTriggerProps) {
+function StablecoinTrigger({ className, ...props }: StablecoinTriggerProps) {
   const { open, selectedCoin } = useStablecoinContext();
 
   if (!selectedCoin) return null;
@@ -147,13 +145,9 @@ function StablecoinTrigger({ className, isDark = false, ...props }: StablecoinTr
           'flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold rounded-lg border transition-all',
           'hover:scale-105 active:scale-95',
           'focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#FFC828]',
+          'border-[#FFC828] bg-transparent text-[#FFC828]',
           className,
         )}
-        style={{
-          borderColor: '#FFC828',
-          backgroundColor: 'transparent',
-          color: '#FFC828',
-        }}
         {...props}
       >
         <Avatar className="h-5 w-5">
@@ -175,14 +169,12 @@ function StablecoinTrigger({ className, isDark = false, ...props }: StablecoinTr
 // Content component
 interface StablecoinContentProps extends React.ComponentProps<typeof PopoverContent> {
   title?: string;
-  isDark?: boolean;
 }
 
 function StablecoinContent({
   className,
   children,
   title = 'Select Stablecoin',
-  isDark = false,
   ...props
 }: StablecoinContentProps) {
   const { coins, selectedCoin, onCoinSelect } = useStablecoinContext();
@@ -190,22 +182,16 @@ function StablecoinContent({
   return (
     <PopoverContent
       className={cn(
-        'w-64 p-0',
-        isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200',
+        'w-64 p-0 transition-colors duration-300',
+        'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700',
         className,
       )}
       align={props.align || 'end'}
       sideOffset={8}
       {...props}
     >
-      <div className={cn(
-        'border-b px-3 py-2.5',
-        isDark ? 'border-gray-700' : 'border-gray-200'
-      )}>
-        <p className={cn(
-          'text-sm font-semibold',
-          isDark ? 'text-gray-300' : 'text-gray-600'
-        )}>
+      <div className="border-b px-3 py-2.5 border-gray-200 dark:border-gray-700 transition-colors duration-300">
+        <p className="text-sm font-semibold text-gray-600 dark:text-gray-300 transition-colors duration-300">
           {title}
         </p>
       </div>
@@ -219,12 +205,10 @@ function StablecoinContent({
                 key={coin.id}
                 onClick={() => onCoinSelect(coin)}
                 className={cn(
-                  'flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-left text-sm transition-colors',
+                  'flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-left text-sm transition-colors duration-300',
                   'focus:outline-none',
-                  isDark 
-                    ? 'hover:bg-gray-700' 
-                    : 'hover:bg-gray-100',
-                  isSelected && (isDark ? 'bg-gray-700' : 'bg-gray-100'),
+                  'hover:bg-gray-100 dark:hover:bg-gray-700',
+                  isSelected && 'bg-gray-100 dark:bg-gray-700',
                 )}
               >
                 <Avatar className="h-8 w-8">
@@ -237,16 +221,10 @@ function StablecoinContent({
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex min-w-0 flex-1 flex-col items-start">
-                  <span className={cn(
-                    'font-semibold',
-                    isDark ? 'text-white' : 'text-gray-900'
-                  )}>
+                  <span className="font-semibold text-gray-900 dark:text-white transition-colors duration-300">
                     {coin.symbol}
                   </span>
-                  <span className={cn(
-                    'text-xs',
-                    isDark ? 'text-gray-400' : 'text-gray-500'
-                  )}>
+                  <span className="text-xs text-gray-500 dark:text-gray-400 transition-colors duration-300">
                     {coin.name}
                   </span>
                 </div>
@@ -264,10 +242,7 @@ function StablecoinContent({
 
       {children && (
         <>
-          <div className={cn(
-            'border-t',
-            isDark ? 'border-gray-700' : 'border-gray-200'
-          )} />
+          <div className="border-t border-gray-200 dark:border-gray-700 transition-colors duration-300" />
           <div className="p-1.5">{children}</div>
         </>
       )}
@@ -281,4 +256,3 @@ export {
   StablecoinContent,
   type Stablecoin 
 };
-
