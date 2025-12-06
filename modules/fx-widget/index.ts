@@ -27,5 +27,6 @@ export {
   EmptyState,
   ReceivePanel,
   ExchangeRateDisplay,
+  SendConfirmation,
 } from './components'
 

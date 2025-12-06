@@ -3,7 +3,6 @@
 import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { ITEM_VARIANTS } from '../constants'
-import { FX_CONFIG } from '../constants'
 import {
   StablecoinSelector,
   StablecoinTrigger,
@@ -20,6 +19,7 @@ interface AmountInputProps {
   selectedStablecoin: Stablecoin
   onStablecoinChange: (coin: Stablecoin) => void
   onMaxClick: () => void
+  accountBalance: number
   labelClass: string
   inputBgClass: string
   mutedClass: string
@@ -34,6 +34,7 @@ export function AmountInput({
   selectedStablecoin,
   onStablecoinChange,
   onMaxClick,
+  accountBalance,
   labelClass,
   inputBgClass,
   mutedClass,
@@ -97,9 +98,20 @@ export function AmountInput({
       </motion.div>
 
       {/* Account Balance Display */}
-      <motion.p className={cn('text-xs mb-4 transition-colors duration-300', mutedClass)} variants={ITEM_VARIANTS}>
+      <motion.p 
+        className={cn('text-xs mb-4 transition-colors duration-300', mutedClass)} 
+        variants={ITEM_VARIANTS}
+        key={accountBalance}
+      >
         Account balance:{' '}
-        {FX_CONFIG.accountBalance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}{' '}
+        <motion.span
+          key={accountBalance}
+          initial={{ scale: 1.2, color: '#FFC828' }}
+          animate={{ scale: 1, color: 'inherit' }}
+          transition={{ duration: 0.5 }}
+        >
+          {accountBalance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+        </motion.span>{' '}
         {selectedStablecoin.symbol}
       </motion.p>
     </>

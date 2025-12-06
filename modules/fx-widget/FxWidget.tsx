@@ -24,6 +24,7 @@ import {
   EmptyState,
   ReceivePanel,
   ExchangeRateDisplay,
+  SendConfirmation,
 } from './components'
 
 export function FxWidget({
@@ -35,6 +36,7 @@ export function FxWidget({
   const { bgClass, borderClass, inputBgClass, labelClass, mutedClass, breakdownBgClass } = useThemeClasses()
 
   // State
+  const [accountBalance, setAccountBalance] = useState(FX_CONFIG.accountBalance)
   const [withdrawalAddress, setWithdrawalAddress] = useState('')
   const [amount, setAmount] = useState(Math.max(0, initialAmount))
   const [amountInput, setAmountInput] = useState(initialAmount > 0 ? initialAmount.toFixed(2) : '')
@@ -63,16 +65,16 @@ export function FxWidget({
 
   useEffect(() => {
     if (initialAmount > 0) {
-      const initialPercentage = (initialAmount / FX_CONFIG.accountBalance) * 100
+      const initialPercentage = (initialAmount / accountBalance) * 100
       setSliderValue(Math.min(100, Math.max(0, initialPercentage)))
     }
-  }, [initialAmount])
+  }, [initialAmount, accountBalance])
 
   // Handlers
   const handleSliderChange = (values: number[]) => {
     const percentage = values[0]
     setSliderValue(percentage)
-    const calculatedAmount = (FX_CONFIG.accountBalance * percentage) / 100
+    const calculatedAmount = (accountBalance * percentage) / 100
     setAmount(calculatedAmount)
     setAmountInput(calculatedAmount.toFixed(2))
   }
@@ -82,7 +84,7 @@ export function FxWidget({
     const closestPoint = findClosestPoint(percentage, PERCENTAGE_POINTS)
     if (Math.abs(percentage - closestPoint) <= 5) {
       setSliderValue(closestPoint)
-      const calculatedAmount = (FX_CONFIG.accountBalance * closestPoint) / 100
+      const calculatedAmount = (accountBalance * closestPoint) / 100
       setAmount(calculatedAmount)
       setAmountInput(calculatedAmount.toFixed(2))
     }
@@ -92,7 +94,7 @@ export function FxWidget({
     e.preventDefault()
     e.stopPropagation()
     setSliderValue(percentage)
-    const calculatedAmount = (FX_CONFIG.accountBalance * percentage) / 100
+    const calculatedAmount = (accountBalance * percentage) / 100
     setAmount(calculatedAmount)
     setAmountInput(calculatedAmount.toFixed(2))
   }
@@ -102,7 +104,7 @@ export function FxWidget({
     const numValue = Number.parseFloat(inputValue) || 0
     const validAmount = Math.max(0, numValue)
     setAmount(validAmount)
-    setSliderValue((validAmount / FX_CONFIG.accountBalance) * 100)
+    setSliderValue((validAmount / accountBalance) * 100)
   }
 
   const handleAmountBlur = () => {
@@ -117,9 +119,19 @@ export function FxWidget({
   }
 
   const handleMaxClick = () => {
-    setAmount(FX_CONFIG.accountBalance)
-    setAmountInput(FX_CONFIG.accountBalance.toFixed(2))
+    setAmount(accountBalance)
+    setAmountInput(accountBalance.toFixed(2))
     setSliderValue(100)
+  }
+
+  const handleSendSuccess = (sentAmount: number) => {
+    // Reduce account balance
+    setAccountBalance((prev) => Math.max(0, prev - sentAmount))
+    // Reset form
+    setAmount(0)
+    setAmountInput('')
+    setSliderValue(0)
+    setWithdrawalAddress('')
   }
 
   return (
@@ -164,6 +176,7 @@ export function FxWidget({
             selectedStablecoin={selectedStablecoin}
             onStablecoinChange={setSelectedStablecoin}
             onMaxClick={handleMaxClick}
+            accountBalance={accountBalance}
             labelClass={labelClass}
             inputBgClass={inputBgClass}
             mutedClass={mutedClass}
@@ -211,6 +224,21 @@ export function FxWidget({
             breakdownBgClass={breakdownBgClass}
             labelClass={labelClass}
             mutedClass={mutedClass}
+          />
+
+          {/* Send Button with Confirmation */}
+          <SendConfirmation
+            amount={amount}
+            stablecoinSymbol={selectedStablecoin.symbol}
+            withdrawalAddress={withdrawalAddress}
+            calculation={calculation}
+            fiatSymbol={symbol}
+            fiatCurrency={validCurrency}
+            borderClass={borderClass}
+            breakdownBgClass={breakdownBgClass}
+            labelClass={labelClass}
+            mutedClass={mutedClass}
+            onSendSuccess={handleSendSuccess}
           />
 
           <EmptyState
