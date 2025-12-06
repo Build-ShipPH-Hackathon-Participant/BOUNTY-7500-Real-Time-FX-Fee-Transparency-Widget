@@ -3,12 +3,7 @@
 import { motion } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { ITEM_VARIANTS } from '../constants'
-import {
-  StablecoinSelector,
-  StablecoinTrigger,
-  StablecoinContent,
-  type Stablecoin,
-} from '@/components/ui/stablecoin-selector'
+import type { Asset } from './AssetNetworkSelector'
 
 interface AmountInputProps {
   amountInput: string
@@ -16,8 +11,7 @@ interface AmountInputProps {
   onAmountBlur: () => void
   isFocused: boolean
   onFocus: () => void
-  selectedStablecoin: Stablecoin
-  onStablecoinChange: (coin: Stablecoin) => void
+  selectedAsset: Asset | null
   onMaxClick: () => void
   accountBalance: number
   labelClass: string
@@ -31,8 +25,7 @@ export function AmountInput({
   onAmountBlur,
   isFocused,
   onFocus,
-  selectedStablecoin,
-  onStablecoinChange,
+  selectedAsset,
   onMaxClick,
   accountBalance,
   labelClass,
@@ -86,13 +79,13 @@ export function AmountInput({
             >
               MAX
             </motion.button>
-            <StablecoinSelector
-              selectedCoinId={selectedStablecoin.symbol}
-              onCoinChange={onStablecoinChange}
-            >
-              <StablecoinTrigger />
-              <StablecoinContent />
-            </StablecoinSelector>
+            {selectedAsset && (
+              <div className="flex items-center gap-1.5 px-2 py-1 rounded bg-gray-100 dark:bg-gray-700">
+                <span className="text-xs font-semibold text-gray-700 dark:text-gray-300">
+                  {selectedAsset.symbol}
+                </span>
+              </div>
+            )}
           </div>
         </motion.div>
       </motion.div>
@@ -112,7 +105,7 @@ export function AmountInput({
         >
           {accountBalance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
         </motion.span>{' '}
-        {selectedStablecoin.symbol}
+        {selectedAsset?.symbol || '---'}
       </motion.p>
     </>
   )

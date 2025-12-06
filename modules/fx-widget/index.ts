@@ -19,6 +19,7 @@ export {
   WidgetHeader,
   DirectionToggle,
   WithdrawalAddressInput,
+  AssetNetworkSelector,
   AmountInput,
   PercentageSlider,
   CurrencySelector,

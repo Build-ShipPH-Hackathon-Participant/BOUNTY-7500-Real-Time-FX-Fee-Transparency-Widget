@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { DEFAULT_STABLECOINS, type Stablecoin } from '@/components/ui/stablecoin-selector'
 
 // Module imports
 import { FX_CONFIG, CONTAINER_VARIANTS, ITEM_VARIANTS, PERCENTAGE_POINTS } from './constants'
@@ -16,6 +15,7 @@ import {
   WidgetHeader,
   DirectionToggle,
   WithdrawalAddressInput,
+  AssetNetworkSelector,
   AmountInput,
   PercentageSlider,
   CurrencySelector,
@@ -26,6 +26,7 @@ import {
   ExchangeRateDisplay,
   SendConfirmation,
 } from './components'
+import type { Asset, BlockchainNetwork } from './components/AssetNetworkSelector'
 
 export function FxWidget({
   initialAmount = 0,
@@ -43,9 +44,8 @@ export function FxWidget({
   const [currency, setCurrency] = useState(supportedCurrencies[0])
   const [direction, setDirection] = useState<'send' | 'receive'>('send')
   const [isFocused, setIsFocused] = useState<'address' | 'amount' | null>(null)
-  const [selectedStablecoin, setSelectedStablecoin] = useState<Stablecoin>(
-    DEFAULT_STABLECOINS.find((c) => c.symbol === 'USDT') || DEFAULT_STABLECOINS[0]
-  )
+  const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null)
+  const [selectedNetwork, setSelectedNetwork] = useState<BlockchainNetwork | null>(null)
   const [sliderValue, setSliderValue] = useState(0)
 
   // Derived state
@@ -153,7 +153,7 @@ export function FxWidget({
       {direction === 'send' ? (
         <motion.div
           key="send-panel"
-          initial="visible"
+          initial="hidden"
           animate="visible"
           variants={CONTAINER_VARIANTS}
         >
@@ -167,14 +167,21 @@ export function FxWidget({
             inputBgClass={inputBgClass}
           />
 
+          <AssetNetworkSelector
+            selectedAsset={selectedAsset}
+            selectedNetwork={selectedNetwork}
+            onAssetChange={setSelectedAsset}
+            onNetworkChange={setSelectedNetwork}
+            labelClass={labelClass}
+          />
+
           <AmountInput
             amountInput={amountInput}
             onAmountChange={handleAmountInputChange}
             onAmountBlur={handleAmountBlur}
             isFocused={isFocused === 'amount'}
             onFocus={() => setIsFocused('amount')}
-            selectedStablecoin={selectedStablecoin}
-            onStablecoinChange={setSelectedStablecoin}
+            selectedAsset={selectedAsset}
             onMaxClick={handleMaxClick}
             accountBalance={accountBalance}
             labelClass={labelClass}
@@ -208,9 +215,9 @@ export function FxWidget({
           />
 
           {/* Real-time exchange rate */}
-          {amount > 0 && (
+          {amount > 0 && selectedAsset && (
             <ExchangeRateDisplay
-              stablecoin={selectedStablecoin.symbol}
+              stablecoin={selectedAsset.symbol.toLowerCase()}
               fiatCurrency={validCurrency}
               mutedClass={mutedClass}
             />
@@ -229,7 +236,7 @@ export function FxWidget({
           {/* Send Button with Confirmation */}
           <SendConfirmation
             amount={amount}
-            stablecoinSymbol={selectedStablecoin.symbol}
+            stablecoinSymbol={selectedAsset?.symbol || '---'}
             withdrawalAddress={withdrawalAddress}
             calculation={calculation}
             fiatSymbol={symbol}
