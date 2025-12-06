@@ -26,11 +26,18 @@
 
 import type React from "react"
 import { useState, useMemo, useEffect } from "react"
-import { Info, Scan, Copy, ChevronDown } from "lucide-react"
+import { Info, Scan, Copy } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { useTheme } from "next-themes"
 import { Slider } from "@/components/ui/slider-number-flow"
 import Switch from "@/components/ui/dark-mode-toggle"
+import { 
+  StablecoinSelector, 
+  StablecoinTrigger, 
+  StablecoinContent,
+  DEFAULT_STABLECOINS,
+  type Stablecoin 
+} from "@/components/ui/stablecoin-selector"
 
 // ============================================================================
 // MOCK CONFIGURATION - Customize these values for different rates/fees
@@ -55,13 +62,6 @@ const MOCK_CONFIG = {
   accountCurrency: "USDT", // Default account currency
 }
 
-const STABLECOINS = [
-  { symbol: "USDC", name: "USD Coin", icon: "🔵" },
-  { symbol: "USDT", name: "Tether", icon: "🟢" },
-  { symbol: "PYUSD", name: "PayPal USD", icon: "🔴" },
-  { symbol: "FDUSD", name: "First Digital USD", icon: "🟡" },
-  { symbol: "BUSD", name: "Binance USD", icon: "🟣" },
-]
 
 // ============================================================================
 // TYPE DEFINITIONS
@@ -195,11 +195,13 @@ export const RipeFxWidget: React.FC<RipeFxWidgetProps> = ({
   // State
   const [withdrawalAddress, setWithdrawalAddress] = useState<string>("")
   const [amount, setAmount] = useState<number>(Math.max(0, initialAmount))
+  const [amountInput, setAmountInput] = useState<string>(initialAmount > 0 ? initialAmount.toFixed(2) : "")
   const [currency, setCurrency] = useState<string>(supportedCurrencies[0])
   const [direction, setDirection] = useState<"send" | "receive">("send")
   const [isFocused, setIsFocused] = useState<"address" | "amount" | null>(null)
-  const [selectedStablecoin, setSelectedStablecoin] = useState<string>("USDT")
-  const [showCoinModal, setShowCoinModal] = useState<boolean>(false)
+  const [selectedStablecoin, setSelectedStablecoin] = useState<Stablecoin>(
+    DEFAULT_STABLECOINS.find(c => c.symbol === "USDT") || DEFAULT_STABLECOINS[0]
+  )
   const [sliderValue, setSliderValue] = useState<number>(0)
 
   const debouncedAmount = useDebounce(amount, 300)
@@ -253,6 +255,7 @@ export const RipeFxWidget: React.FC<RipeFxWidgetProps> = ({
     setSliderValue(percentage)
     const calculatedAmount = (MOCK_CONFIG.accountBalance * percentage) / 100
     setAmount(calculatedAmount)
+    setAmountInput(calculatedAmount.toFixed(2))
   }
   
   // Handle slider value commit (when user releases)
@@ -264,6 +267,7 @@ export const RipeFxWidget: React.FC<RipeFxWidgetProps> = ({
       setSliderValue(closestPoint)
       const calculatedAmount = (MOCK_CONFIG.accountBalance * closestPoint) / 100
       setAmount(calculatedAmount)
+      setAmountInput(calculatedAmount.toFixed(2))
     }
   }
   
@@ -274,6 +278,7 @@ export const RipeFxWidget: React.FC<RipeFxWidgetProps> = ({
     setSliderValue(percentage)
     const calculatedAmount = (MOCK_CONFIG.accountBalance * percentage) / 100
     setAmount(calculatedAmount)
+    setAmountInput(calculatedAmount.toFixed(2))
   }
   
   // Calculate initial slider value from initial amount
@@ -298,10 +303,27 @@ export const RipeFxWidget: React.FC<RipeFxWidgetProps> = ({
   }
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = Number.parseFloat(e.target.value) || 0
-    const validAmount = Math.max(0, value)
-    setAmount(validAmount)
-    setSliderValue((validAmount / MOCK_CONFIG.accountBalance) * 100)
+    const inputValue = e.target.value
+    // Allow empty string, numbers, and decimal point
+    if (inputValue === "" || /^\d*\.?\d*$/.test(inputValue)) {
+      setAmountInput(inputValue)
+      const numValue = Number.parseFloat(inputValue) || 0
+      const validAmount = Math.max(0, numValue)
+      setAmount(validAmount)
+      setSliderValue((validAmount / MOCK_CONFIG.accountBalance) * 100)
+    }
+  }
+
+  const handleAmountBlur = () => {
+    setIsFocused(null)
+    // Format the input on blur
+    if (amountInput === "" || Number.parseFloat(amountInput) === 0) {
+      setAmountInput("")
+      setAmount(0)
+    } else {
+      const numValue = Number.parseFloat(amountInput) || 0
+      setAmountInput(numValue.toFixed(2))
+    }
   }
 
   const handleCurrencyChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -314,6 +336,7 @@ export const RipeFxWidget: React.FC<RipeFxWidgetProps> = ({
 
   const handleMaxBalance = () => {
     setAmount(MOCK_CONFIG.accountBalance)
+    setAmountInput(MOCK_CONFIG.accountBalance.toFixed(2))
     setSliderValue(100)
   }
 
@@ -475,12 +498,17 @@ export const RipeFxWidget: React.FC<RipeFxWidgetProps> = ({
           <input
             id="amount-input"
             type="text"
-            value={amount === 0 ? "" : amount.toFixed(2)}
+            inputMode="decimal"
+            value={amountInput}
             onChange={handleAmountChange}
-            onFocus={() => setIsFocused("amount")}
-            onBlur={() => setIsFocused(null)}
-            placeholder="Enter amount"
-            className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-0 transition-colors ${inputBgClass}`}
+            onFocus={(e) => {
+              setIsFocused("amount")
+              // Select all text on focus so user can type fresh value
+              e.target.select()
+            }}
+            onBlur={handleAmountBlur}
+            placeholder="0.00"
+            className={`w-full px-4 py-3 pr-32 border rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-0 transition-colors ${inputBgClass}`}
             style={{ "--tw-ring-color": "#FFC828" } as React.CSSProperties}
             aria-label="Stablecoin amount to send"
           />
@@ -498,67 +526,22 @@ export const RipeFxWidget: React.FC<RipeFxWidgetProps> = ({
             >
               MAX
             </motion.button>
-            <motion.button
-              onClick={() => setShowCoinModal(!showCoinModal)}
-              className={`flex items-center gap-1 px-3 py-1 text-sm font-semibold rounded border transition-all`}
-              style={{
-                borderColor: "#FFC828",
-                backgroundColor: "transparent",
-                color: "#FFC828",
-              }}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              aria-label="Select stablecoin"
+            <StablecoinSelector
+              selectedCoinId={selectedStablecoin.symbol}
+              onCoinChange={(coin) => setSelectedStablecoin(coin)}
             >
-              {selectedStablecoin}
-              <ChevronDown className="w-4 h-4" />
-            </motion.button>
+              <StablecoinTrigger isDark={isDark} />
+              <StablecoinContent isDark={isDark} />
+            </StablecoinSelector>
           </div>
         </motion.div>
       </motion.div>
-
-      <AnimatePresence>
-        {showCoinModal && (
-          <motion.div
-            className={`mb-4 p-3 rounded-lg border ${borderClass} ${breakdownBgClass}`}
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.2 }}
-          >
-            <p className={`text-xs font-semibold mb-2 ${labelClass}`}>Select Stablecoin</p>
-            <div className="grid grid-cols-2 gap-2">
-              {STABLECOINS.map((coin) => (
-                <motion.button
-                  key={coin.symbol}
-                  onClick={() => {
-                    setSelectedStablecoin(coin.symbol)
-                    setShowCoinModal(false)
-                  }}
-                  className={`p-2 rounded border text-center text-sm font-medium transition-all`}
-                  style={{
-                    backgroundColor: selectedStablecoin === coin.symbol ? "#FFC828" : "transparent",
-                    color: selectedStablecoin === coin.symbol ? "#000" : "inherit",
-                    borderColor: selectedStablecoin === coin.symbol ? "#FFC828" : isDark ? "#444" : "#ddd",
-                  }}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  aria-pressed={selectedStablecoin === coin.symbol}
-                >
-                  <div className="text-lg mb-1">{coin.icon}</div>
-                  <div>{coin.symbol}</div>
-                </motion.button>
-              ))}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       {/* Account Balance Display with animation */}
       <motion.p className={`text-xs ${mutedClass} mb-4`} variants={itemVariants}>
         Account balance:{" "}
         {MOCK_CONFIG.accountBalance.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}{" "}
-        {selectedStablecoin}
+        {selectedStablecoin.symbol}
       </motion.p>
 
       <motion.div className="mb-6" variants={itemVariants}>
