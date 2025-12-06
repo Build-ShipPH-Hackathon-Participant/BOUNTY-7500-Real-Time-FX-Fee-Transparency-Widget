@@ -44,3 +44,28 @@ export const CURRENCY_SYMBOLS: Record<string, string> = {
   MYR: "RM",
 }
 
+// Parsed QR Code Data (EMVCo format)
+export interface ParsedQRData {
+  // Merchant Information
+  merchantName: string | null
+  merchantCity: string | null
+  merchantId: string | null
+  
+  // Transaction Details
+  transactionAmount: number | null
+  transactionCurrency: string | null
+  transactionId: string | null
+  
+  // Payment Provider
+  paymentProvider: string | null
+  
+  // Country
+  countryCode: string | null
+  
+  // Raw QR data
+  rawData: string
+  
+  // Whether this is a valid EMVCo QR
+  isEMVCo: boolean
+}
+

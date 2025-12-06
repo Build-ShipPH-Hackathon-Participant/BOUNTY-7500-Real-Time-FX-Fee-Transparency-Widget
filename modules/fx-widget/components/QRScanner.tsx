@@ -8,9 +8,12 @@ import jsQR from 'jsqr'
 import { cn } from '@/lib/utils'
 import { ITEM_VARIANTS } from '../constants'
 import { scanQRCodeFromFile } from '../services/qrScanService'
+import { parseEMVCoQR, isEMVCoQR } from '../services/emvcoParser'
+import type { ParsedQRData } from '../types'
 
 interface QRScannerProps {
   onScanSuccess: (decodedText: string) => void
+  onParsedQR?: (data: ParsedQRData) => void
   labelClass: string
 }
 
@@ -197,12 +200,13 @@ function scanWithBinarization(
   return code?.data || null
 }
 
-export function QRScanner({ onScanSuccess, labelClass }: QRScannerProps) {
-  const [isScannerOpen, setIsScannerOpen] = useState(true) // Start open by default
+export function QRScanner({ onScanSuccess, onParsedQR, labelClass }: QRScannerProps) {
+  const [isScannerOpen, setIsScannerOpen] = useState(false) // Start collapsed by default
   const [scanError, setScanError] = useState<string | null>(null)
   const [isScanning, setIsScanning] = useState(false)
   const [qrDetected, setQrDetected] = useState(false)
   const [lastScannedText, setLastScannedText] = useState<string | null>(null)
+  const [parsedData, setParsedData] = useState<ParsedQRData | null>(null)
   const html5QrCodeRef = useRef<Html5Qrcode | null>(null)
   const scannerContainerRef = useRef<HTMLDivElement>(null)
   const scannerStartedRef = useRef(false)
@@ -211,9 +215,39 @@ export function QRScanner({ onScanSuccess, labelClass }: QRScannerProps) {
     if (decodedText) {
       setQrDetected(true)
       setLastScannedText(decodedText)
+      
+      // Parse EMVCo QR code if applicable
+      let parsed: ParsedQRData | null = null
+      if (isEMVCoQR(decodedText)) {
+        const emvcoData = parseEMVCoQR(decodedText)
+        parsed = {
+          ...emvcoData,
+          isEMVCo: true,
+        }
+        setParsedData(parsed)
+      } else {
+        // Not an EMVCo QR, treat as raw address
+        parsed = {
+          merchantName: null,
+          merchantCity: null,
+          merchantId: null,
+          transactionAmount: null,
+          transactionCurrency: null,
+          transactionId: null,
+          paymentProvider: null,
+          countryCode: null,
+          rawData: decodedText,
+          isEMVCo: false,
+        }
+        setParsedData(parsed)
+      }
+      
       // Auto-fill after a brief delay to show the success indicator
       setTimeout(() => {
         onScanSuccess(decodedText)
+        if (parsed && onParsedQR) {
+          onParsedQR(parsed)
+        }
         stopScanner()
         setIsScannerOpen(false)
       }, 1000)
@@ -576,14 +610,32 @@ export function QRScanner({ onScanSuccess, labelClass }: QRScannerProps) {
                     exit={{ opacity: 0, scale: 0.8 }}
                     className="absolute inset-0 flex items-center justify-center bg-green-500/90 z-20"
                   >
-                    <div className="text-white text-center">
+                    <div className="text-white text-center px-4">
                       <CheckCircle2 className="w-16 h-16 mx-auto mb-3" />
                       <p className="text-lg font-semibold mb-1">QR Code Detected!</p>
-                      <p className="text-sm opacity-90">Filling address...</p>
-                      {lastScannedText && (
-                        <p className="text-xs mt-2 opacity-75 font-mono break-all px-4">
-                          {lastScannedText.substring(0, 30)}...
-                        </p>
+                      {parsedData?.isEMVCo ? (
+                        <>
+                          <p className="text-sm opacity-90">Payment QR scanned</p>
+                          {parsedData.merchantName && (
+                            <p className="text-sm mt-2 font-medium">
+                              {parsedData.merchantName}
+                            </p>
+                          )}
+                          {parsedData.transactionAmount && parsedData.transactionCurrency && (
+                            <p className="text-xs mt-1 opacity-90">
+                              Amount: {parsedData.transactionCurrency} {parsedData.transactionAmount.toLocaleString()}
+                            </p>
+                          )}
+                        </>
+                      ) : (
+                        <>
+                          <p className="text-sm opacity-90">Processing...</p>
+                          {lastScannedText && (
+                            <p className="text-xs mt-2 opacity-75 font-mono break-all">
+                              {lastScannedText.substring(0, 30)}...
+                            </p>
+                          )}
+                        </>
                       )}
                     </div>
                   </motion.div>

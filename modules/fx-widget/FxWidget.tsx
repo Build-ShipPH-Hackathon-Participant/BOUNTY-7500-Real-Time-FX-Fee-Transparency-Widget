@@ -8,7 +8,7 @@ import { FX_CONFIG, CONTAINER_VARIANTS, ITEM_VARIANTS, PERCENTAGE_POINTS } from 
 import { useDebounce, useFxCalculation, useThemeClasses } from './hooks'
 import { findClosestPoint } from './utils/calculations'
 import { CURRENCY_SYMBOLS } from './types'
-import type { FxWidgetProps } from './types'
+import type { FxWidgetProps, ParsedQRData } from './types'
 
 // Component imports
 import {
@@ -18,6 +18,7 @@ import {
   AssetNetworkSelector,
   AmountInput,
   QRScanner,
+  MerchantInfo,
   PercentageSlider,
   CurrencySelector,
   ResultDisplay,
@@ -48,6 +49,7 @@ export function FxWidget({
   const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null)
   const [selectedNetwork, setSelectedNetwork] = useState<BlockchainNetwork | null>(null)
   const [sliderValue, setSliderValue] = useState(0)
+  const [parsedQRData, setParsedQRData] = useState<ParsedQRData | null>(null)
 
   // Derived state
   const debouncedAmount = useDebounce(amount, 300)
@@ -133,6 +135,23 @@ export function FxWidget({
     setAmountInput('')
     setSliderValue(0)
     setWithdrawalAddress('')
+    setParsedQRData(null)
+  }
+
+  // Handle parsed QR data from EMVCo QR codes
+  const handleParsedQR = (data: ParsedQRData) => {
+    setParsedQRData(data)
+    
+    // Auto-fill currency if supported and present in QR
+    if (data.transactionCurrency && supportedCurrencies.includes(data.transactionCurrency)) {
+      setCurrency(data.transactionCurrency)
+    }
+  }
+
+  // Clear parsed QR data
+  const handleClearParsedQR = () => {
+    setParsedQRData(null)
+    setWithdrawalAddress('')
   }
 
   return (
@@ -170,7 +189,17 @@ export function FxWidget({
 
           <QRScanner
             onScanSuccess={setWithdrawalAddress}
+            onParsedQR={handleParsedQR}
             labelClass={labelClass}
+          />
+
+          <MerchantInfo
+            parsedQR={parsedQRData}
+            borderClass={borderClass}
+            breakdownBgClass={breakdownBgClass}
+            labelClass={labelClass}
+            mutedClass={mutedClass}
+            onClear={handleClearParsedQR}
           />
 
           <AssetNetworkSelector
@@ -251,6 +280,7 @@ export function FxWidget({
             breakdownBgClass={breakdownBgClass}
             labelClass={labelClass}
             mutedClass={mutedClass}
+            parsedQRData={parsedQRData}
             onSendSuccess={handleSendSuccess}
           />
 
