@@ -1,17 +1,13 @@
 'use client'
 
 import * as React from 'react'
-import { ChevronDown, Globe } from 'lucide-react'
+import { ChevronDown, Globe, Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { Button } from '@/components/ui/button'
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+  MorphingPopover,
+  MorphingPopoverTrigger,
+  MorphingPopoverContent,
+} from '@/components/ui/morphing-popover'
 
 // Currency interface
 export interface FiatCurrency {
@@ -71,77 +67,85 @@ export function CurrencySelector({
     [currencies, selectedCurrencyCode]
   )
 
+  const handleSelect = (currency: FiatCurrency) => {
+    onCurrencyChange(currency)
+    setOpen(false)
+  }
+
   return (
-    <div className={cn(className)}>
-      <DropdownMenu open={open} onOpenChange={setOpen}>
-        <DropdownMenuTrigger asChild>
-          <Button 
-            variant="outline" 
-            className="w-full justify-between h-12 px-4 bg-gray-50 dark:bg-gray-800 border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-300"
-          >
-            <div className="flex items-center gap-3">
-              <span className="text-xl">{selectedCurrency?.flag}</span>
-              <div className="flex flex-col items-start">
-                <span className="font-semibold">{selectedCurrency?.code}</span>
-                <span className="text-xs text-muted-foreground">{selectedCurrency?.name}</span>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-lg font-bold text-[#FFC828]">{selectedCurrency?.symbol}</span>
-              <ChevronDown className={cn(
-                "size-4 text-muted-foreground transition-transform duration-200",
-                open && "rotate-180"
-              )} />
-            </div>
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent 
-          align="start" 
-          className="w-[280px] bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700"
+    <div className={cn('w-full', className)}>
+      <MorphingPopover open={open} onOpenChange={setOpen} className="w-full">
+        <MorphingPopoverTrigger
+          className="w-full flex items-center justify-between h-12 px-4 rounded-lg border bg-gray-50 dark:bg-gray-800 border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-[#FFC828] focus:ring-offset-0"
         >
-          <DropdownMenuLabel className="flex items-center gap-2">
-            <Globe className="size-4" />
-            Select Currency
-          </DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          {currencies.map((currency) => {
-            const isSelected = selectedCurrency?.code === currency.code
-            return (
-              <DropdownMenuItem
-                key={currency.code}
-                onSelect={() => {
-                  onCurrencyChange(currency)
-                  setOpen(false)
-                }}
-                className={cn(
-                  "cursor-pointer py-2.5 transition-all duration-200",
-                  isSelected 
-                    ? "bg-[#FFC828]/20 border-l-2 border-[#FFC828]" 
-                    : "hover:bg-gray-100 dark:hover:bg-gray-700"
-                )}
-              >
-                <div className="flex flex-1 items-center gap-3">
-                  <span className="text-xl">{currency.flag}</span>
-                  <div className="flex flex-col">
+          <div className="flex items-center gap-3">
+            <span className="text-xl">{selectedCurrency?.flag}</span>
+            <div className="flex flex-col items-start">
+              <span className="font-semibold">{selectedCurrency?.code}</span>
+              <span className="text-xs text-gray-500 dark:text-gray-400">{selectedCurrency?.name}</span>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-lg font-bold text-[#FFC828]">{selectedCurrency?.symbol}</span>
+            <ChevronDown className={cn(
+              "size-4 text-gray-500 dark:text-gray-400 transition-transform duration-200",
+              open && "rotate-180"
+            )} />
+          </div>
+        </MorphingPopoverTrigger>
+        
+        <MorphingPopoverContent className="max-w-sm">
+          {/* Header */}
+          <div className="flex items-center justify-center gap-2 border-b border-gray-200 dark:border-gray-700 px-5 py-4">
+            <Globe className="size-5 text-[#FFC828]" />
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+              Select Currency
+            </h2>
+          </div>
+
+          {/* Currency List */}
+          <div className="max-h-[360px] overflow-y-auto p-2">
+            {currencies.map((currency) => {
+              const isSelected = selectedCurrency?.code === currency.code
+              return (
+                <button
+                  key={currency.code}
+                  onClick={() => handleSelect(currency)}
+                  className={cn(
+                    "w-full flex items-center gap-4 px-4 py-3 rounded-xl text-left transition-all duration-200",
+                    "focus:outline-none",
+                    isSelected 
+                      ? "bg-[#FFC828]/15 ring-2 ring-[#FFC828]" 
+                      : "hover:bg-gray-100 dark:hover:bg-gray-800"
+                  )}
+                >
+                  <span className="text-3xl">{currency.flag}</span>
+                  <div className="flex flex-col min-w-0 flex-1">
                     <span className={cn(
-                      "font-medium",
-                      isSelected && "text-[#FFC828] font-semibold"
+                      "font-semibold text-gray-900 dark:text-white",
+                      isSelected && "text-[#FFC828]"
                     )}>{currency.code}</span>
-                    <span className="text-xs text-muted-foreground">{currency.name}</span>
+                    <span className="text-sm text-gray-500 dark:text-gray-400">{currency.name}</span>
                   </div>
-                </div>
-                <span className={cn(
-                  "text-sm font-semibold",
-                  isSelected ? "text-[#FFC828]" : "text-muted-foreground"
-                )}>{currency.symbol}</span>
-              </DropdownMenuItem>
-            )
-          })}
-        </DropdownMenuContent>
-      </DropdownMenu>
+                  <div className="flex items-center gap-2">
+                    <span className={cn(
+                      "text-lg font-bold",
+                      isSelected ? "text-[#FFC828]" : "text-gray-400 dark:text-gray-500"
+                    )}>{currency.symbol}</span>
+                    {isSelected && (
+                      <div className="flex items-center justify-center w-6 h-6 rounded-full bg-[#FFC828]">
+                        <Check className="h-4 w-4 text-black" />
+                      </div>
+                    )}
+                  </div>
+                </button>
+              )
+            })}
+          </div>
+        </MorphingPopoverContent>
+      </MorphingPopover>
     </div>
   )
 }
 
 export default CurrencySelector
-

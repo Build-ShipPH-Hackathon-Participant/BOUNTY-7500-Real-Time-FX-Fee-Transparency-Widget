@@ -7,10 +7,10 @@ import { QrCode } from '@ark-ui/react/qr-code'
 import { cn } from '@/lib/utils'
 import { ITEM_VARIANTS } from '../constants'
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover'
+  MorphingPopover,
+  MorphingPopoverTrigger,
+  MorphingPopoverContent,
+} from '@/components/ui/morphing-popover'
 
 // ============================================================================
 // Demo Data
@@ -18,16 +18,16 @@ import {
 const DEMO_ADDRESS = '0x1a2b3c4d5e6f7890abcdef1234567890abcdef12'
 
 const NETWORKS = [
-  { id: 'tron', name: 'TRC20 (Tron)', symbol: 'TRX' },
-  { id: 'ethereum', name: 'ERC20 (Ethereum)', symbol: 'ETH' },
-  { id: 'bsc', name: 'BEP20 (BSC)', symbol: 'BNB' },
-  { id: 'polygon', name: 'Polygon', symbol: 'MATIC' },
+  { id: 'tron', name: 'TRC20 (Tron)', symbol: 'TRX', icon: '⚡' },
+  { id: 'ethereum', name: 'ERC20 (Ethereum)', symbol: 'ETH', icon: '💎' },
+  { id: 'bsc', name: 'BEP20 (BSC)', symbol: 'BNB', icon: '🔶' },
+  { id: 'polygon', name: 'Polygon', symbol: 'MATIC', icon: '🟣' },
 ]
 
 const ACCOUNTS = [
-  { id: '1', name: 'Account 1' },
-  { id: '2', name: 'Account 2' },
-  { id: '3', name: 'Account 3' },
+  { id: '1', name: 'Account 1', icon: '👤' },
+  { id: '2', name: 'Account 2', icon: '👤' },
+  { id: '3', name: 'Account 3', icon: '👤' },
 ]
 
 // ============================================================================
@@ -65,64 +65,86 @@ function QrCodeDisplay({ value, size = 'md', className }: QrCodeDisplayProps) {
 }
 
 // ============================================================================
-// Dropdown Component (reusable)
+// Centered Modal Dropdown Component
 // ============================================================================
 interface DropdownOption {
   id: string
   name: string
+  icon?: string
 }
 
 interface DropdownProps {
+  title: string
   options: DropdownOption[]
   selected: DropdownOption
   onSelect: (option: DropdownOption) => void
   open: boolean
   onOpenChange: (open: boolean) => void
-  width?: string
 }
 
-function Dropdown({ options, selected, onSelect, open, onOpenChange, width = 'w-48' }: DropdownProps) {
+function Dropdown({ title, options, selected, onSelect, open, onOpenChange }: DropdownProps) {
   return (
-    <Popover open={open} onOpenChange={onOpenChange}>
-      <PopoverTrigger asChild>
-        <button
-          className={cn(
-            'flex items-center gap-2 px-3 py-1.5 rounded-lg border text-sm font-medium',
-            'transition-all duration-300 hover:bg-gray-100 dark:hover:bg-gray-700',
-            'border-gray-300 dark:border-gray-600'
-          )}
-        >
-          {selected.name}
-          <ChevronDown
-            className={cn(
-              'w-4 h-4 transition-transform duration-200',
-              open && 'rotate-180'
-            )}
-          />
-        </button>
-      </PopoverTrigger>
-      <PopoverContent
-        className={cn(width, 'p-1 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700')}
-        align="end"
+    <MorphingPopover open={open} onOpenChange={onOpenChange}>
+      <MorphingPopoverTrigger
+        className={cn(
+          'flex items-center gap-2 px-3 py-1.5 rounded-lg border text-sm font-medium',
+          'transition-all duration-300 hover:bg-gray-100 dark:hover:bg-gray-700',
+          'border-gray-300 dark:border-gray-600'
+        )}
       >
-        {options.map((option) => (
-          <button
-            key={option.id}
-            onClick={() => {
-              onSelect(option)
-              onOpenChange(false)
-            }}
-            className={cn(
-              'w-full px-3 py-2 text-sm text-left rounded-md transition-colors duration-200',
-              'hover:bg-gray-100 dark:hover:bg-gray-700',
-              selected.id === option.id && 'bg-gray-100 dark:bg-gray-700 font-medium'
-            )}
-          >
-            {option.name}
-          </button>
-        ))}
-      </PopoverContent>
-    </Popover>
+        {selected.name}
+        <ChevronDown
+          className={cn(
+            'w-4 h-4 transition-transform duration-200',
+            open && 'rotate-180'
+          )}
+        />
+      </MorphingPopoverTrigger>
+      <MorphingPopoverContent className="max-w-xs">
+        {/* Header */}
+        <div className="border-b border-gray-200 dark:border-gray-700 px-5 py-4">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white text-center">
+            {title}
+          </h2>
+        </div>
+
+        {/* Options List */}
+        <div className="p-2">
+          {options.map((option) => {
+            const isSelected = selected.id === option.id
+            return (
+              <button
+                key={option.id}
+                onClick={() => {
+                  onSelect(option)
+                  onOpenChange(false)
+                }}
+                className={cn(
+                  'w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all duration-200',
+                  'focus:outline-none',
+                  isSelected 
+                    ? 'bg-[#FFC828]/15 ring-2 ring-[#FFC828]' 
+                    : 'hover:bg-gray-100 dark:hover:bg-gray-800'
+                )}
+              >
+                {option.icon && <span className="text-xl">{option.icon}</span>}
+                <span className={cn(
+                  'flex-1 font-medium',
+                  isSelected && 'text-[#FFC828]'
+                )}>
+                  {option.name}
+                </span>
+                {isSelected && (
+                  <div className="flex items-center justify-center w-6 h-6 rounded-full bg-[#FFC828]">
+                    <Check className="h-4 w-4 text-black" />
+                  </div>
+                )}
+              </button>
+            )
+          })}
+        </div>
+      </MorphingPopoverContent>
+    </MorphingPopover>
   )
 }
 
@@ -245,24 +267,24 @@ export function ReceivePanel({
         {/* Network Row */}
         <InfoRow label="Network" labelClass={labelClass}>
           <Dropdown
+            title="Select Network"
             options={NETWORKS}
             selected={selectedNetwork}
             onSelect={(option) => setSelectedNetwork(option as typeof NETWORKS[0])}
             open={networkOpen}
             onOpenChange={setNetworkOpen}
-            width="w-48"
           />
         </InfoRow>
 
         {/* Account Row */}
         <InfoRow label="Account" labelClass={labelClass}>
           <Dropdown
+            title="Select Account"
             options={ACCOUNTS}
             selected={selectedAccount}
             onSelect={(option) => setSelectedAccount(option as typeof ACCOUNTS[0])}
             open={accountOpen}
             onOpenChange={setAccountOpen}
-            width="w-36"
           />
         </InfoRow>
 
@@ -298,4 +320,3 @@ export function ReceivePanel({
     </motion.div>
   )
 }
-
