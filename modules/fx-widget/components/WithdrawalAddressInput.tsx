@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { Scan, Copy } from 'lucide-react'
+import { Copy } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { ITEM_VARIANTS } from '../constants'
 
@@ -26,16 +26,18 @@ export function WithdrawalAddressInput({
 }: WithdrawalAddressInputProps) {
   const handleClipboard = async () => {
     if (value) {
-      await navigator.clipboard.writeText(value)
-      alert('Address copied to clipboard!')
+      try {
+        await navigator.clipboard.writeText(value)
+        alert('Address copied to clipboard!')
+      } catch (err) {
+        console.error('Failed to copy to clipboard:', err)
+        alert('Failed to copy address to clipboard')
+      }
     } else {
       alert('Please enter an address first')
     }
   }
 
-  const handleScan = () => {
-    alert('QR code scan feature would open camera')
-  }
 
   return (
     <motion.div className="mb-4" variants={ITEM_VARIANTS}>
@@ -61,16 +63,6 @@ export function WithdrawalAddressInput({
           style={{ '--tw-ring-color': '#FFC828' } as React.CSSProperties}
           aria-label="Withdrawal address"
         />
-        <motion.button
-          onClick={handleScan}
-          className="p-3 rounded-lg border transition-all duration-300 border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-700 hover:bg-[#FFC828] hover:border-[#FFC828]"
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          aria-label="Scan QR code"
-          title="Scan QR code"
-        >
-          <Scan className="w-5 h-5" />
-        </motion.button>
         <motion.button
           onClick={handleClipboard}
           className="p-3 rounded-lg border transition-all duration-300 border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-700 hover:bg-[#FFC828] hover:border-[#FFC828]"

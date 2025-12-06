@@ -1,6 +1,7 @@
 export { WidgetHeader } from './WidgetHeader'
 export { DirectionToggle } from './DirectionToggle'
 export { WithdrawalAddressInput } from './WithdrawalAddressInput'
+export { QRScanner } from './QRScanner'
 export { AssetNetworkSelector } from './AssetNetworkSelector'
 export { AmountInput } from './AmountInput'
 export { PercentageSlider } from './PercentageSlider'

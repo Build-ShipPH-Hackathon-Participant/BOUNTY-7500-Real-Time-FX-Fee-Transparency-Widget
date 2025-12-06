@@ -17,6 +17,7 @@ import {
   WithdrawalAddressInput,
   AssetNetworkSelector,
   AmountInput,
+  QRScanner,
   PercentageSlider,
   CurrencySelector,
   ResultDisplay,
@@ -165,6 +166,11 @@ export function FxWidget({
             onBlur={() => setIsFocused(null)}
             labelClass={labelClass}
             inputBgClass={inputBgClass}
+          />
+
+          <QRScanner
+            onScanSuccess={setWithdrawalAddress}
+            labelClass={labelClass}
           />
 
           <AssetNetworkSelector
